@@ -4,7 +4,7 @@ HistorIQ 是一個基於模型上下文協議（Model Context Protocol, MCP）�
 ## 核心亮點 / 特點
 
 
-
+## MCP（Model Context Protocol）
 #### 本專案遵循 MCP（Model Context Protocol）模型上下文協議 的設計原則，並實作以下關鍵模組與規範：
 
 | 模組                 | 說明                                                    | 實作狀態   |
