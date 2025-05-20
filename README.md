@@ -57,4 +57,9 @@ HistorIQ 是一個基於模型上下文協議（Model Context Protocol, MCP）�
 - ✅ 具備基本 RAG 植入，可擴充知識強化模組
 
 
+## 前端ui畫面展示
+- 剛開始的畫面
+![image](https://github.com/user-attachments/assets/396b3464-5c43-49d3-980d-8817228eab4a)
 
+- 文章產製完畢的畫面
+![image](https://github.com/user-attachments/assets/779c72dd-3e43-4e30-8f5f-65a73d406e53)
