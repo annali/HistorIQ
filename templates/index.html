@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>HistorIQ 歷史故事</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body {
+      background-color: #f7f8fa;
+      color: #333;
+      padding-top: 40px;
+      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+    .card {
+      max-width: 720px;
+      margin: auto;
+      padding: 2rem;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      background-color: #fff;
+    }
+    .form-control {
+      height: 60px;
+      font-size: 1.1rem;
+      padding: 1rem;
+    }
+    .markdown {
+      white-space: pre-wrap;
+      margin-bottom: 2rem;
+    }
+    .markdown h2 {
+      font-size: 1.5rem;
+      margin-top: 2rem;
+      border-left: 4px solid #527586;
+      padding-left: 0.6rem;
+      color: #2c3e50;
+    }
+    .tts-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-bottom: 1rem; /* 增加朗讀與功能按鈕間距 */
+    }
+    .action-buttons {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    /*.tts-controls, .action-buttons {*/
+    /*  display: flex;*/
+    /*  align-items: center;*/
+    /*  gap: 1rem;*/
+    /*  flex-wrap: wrap;*/
+    /*}*/
+    .progress {
+      flex-grow: 1;
+      height: 10px;
+    }
+    .highlight {
+      background-color: #fceccf;
+      padding: 0.2rem;
+      border-radius: 4px;
+    }
+    #tts-ghost-area {
+      display: none;
+    }
+    .bottom-section {
+      position: sticky;
+      bottom: 0;
+      background: white;
+      padding: 1rem 0;
+      z-index: 10;
+      border-top: 1px solid #eee;
+    }
+    .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h2 class="mb-4 text-center">🕰️ HistorIQ 歷史故事</h2>
+    <div class="markdown" id="story-output"></div>
+    <div class="bottom-section">
+      <form id="chat-form">
+        <div class="mb-3">
+          <input
+            type="text"
+            id="question"
+            name="question"
+            class="form-control"
+            placeholder="請輸入想了解的歷史故事並按 Enter..."
+            required
+            autofocus
+          >
+        </div>
+      </form>
+
+      <div class="tts-controls">
+        <button id="tts-btn" class="btn btn-outline-primary btn-sm">🔊 開始朗讀</button>
+        <div class="progress">
+          <div id="tts-progress" class="progress-bar" style="width: 0%"></div>
+        </div>
+      </div>
+
+      <div class="action-buttons hidden">
+        <button class="btn btn-secondary btn-sm" onclick="callSummary()">🧠 摘要</button>
+        <button class="btn btn-secondary btn-sm" onclick="callChapter()">📚 章節</button>
+        <button class="btn btn-secondary btn-sm" onclick="callVariant()">🎭 換風格</button>
+        <button class="btn btn-secondary btn-sm" onclick="callContinue()">🔁 續寫故事</button>
+      </div>
+    </div>
+
+    <div id="tts-ghost-area"></div>
+
+    <audio id="bg-music" loop>
+      <source src="/static/music/guzheng.mp3" type="audio/mpeg">
+    </audio>
+  </div>
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <title>HistorIQ 歷史故事</title>-->
+<!--  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
+<!--  <style>-->
+<!--    body {-->
+<!--      background-color: #f7f8fa;-->
+<!--      color: #333;-->
+<!--      padding-top: 40px;-->
+<!--      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;-->
+<!--    }-->
+<!--    .card {-->
+<!--      max-width: 720px;-->
+<!--      margin: auto;-->
+<!--      padding: 2rem;-->
+<!--      box-shadow: 0 2px 10px rgba(0,0,0,0.08);-->
+<!--      border-radius: 12px;-->
+<!--      background-color: #fff;-->
+<!--    }-->
+<!--    .form-control {-->
+<!--      height: 60px;-->
+<!--      font-size: 1.1rem;-->
+<!--      padding: 1rem;-->
+<!--    }-->
+<!--    .markdown {-->
+<!--      white-space: pre-wrap;-->
+<!--      margin-bottom: 2rem;-->
+<!--    }-->
+<!--    .markdown h2 {-->
+<!--      font-size: 1.5rem;-->
+<!--      margin-top: 2rem;-->
+<!--      border-left: 4px solid #527586;-->
+<!--      padding-left: 0.6rem;-->
+<!--      color: #2c3e50;-->
+<!--    }-->
+<!--    .tts-controls, .action-buttons {-->
+<!--      display: flex;-->
+<!--      align-items: center;-->
+<!--      gap: 1rem;-->
+<!--      flex-wrap: wrap;-->
+<!--    }-->
+<!--    .progress {-->
+<!--      flex-grow: 1;-->
+<!--      height: 10px;-->
+<!--    }-->
+<!--    .highlight {-->
+<!--      background-color: #fceccf;-->
+<!--      padding: 0.2rem;-->
+<!--      border-radius: 4px;-->
+<!--    }-->
+<!--    #tts-ghost-area {-->
+<!--      display: none;-->
+<!--    }-->
+<!--    .bottom-section {-->
+<!--      position: sticky;-->
+<!--      bottom: 0;-->
+<!--      background: white;-->
+<!--      padding: 1rem 0;-->
+<!--      z-index: 10;-->
+<!--      border-top: 1px solid #eee;-->
+<!--    }-->
+<!--    .hidden {-->
+<!--      display: none;-->
+<!--    }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--  <div class="card">-->
+<!--    <h2 class="mb-4 text-center">🕰️ HistorIQ 歷史故事</h2>-->
+<!--    <div class="markdown" id="story-output"></div>-->
+<!--    <div class="bottom-section">-->
+<!--      <form id="chat-form">-->
+<!--        <div class="mb-3">-->
+<!--          <input-->
+<!--            type="text"-->
+<!--            id="question"-->
+<!--            name="question"-->
+<!--            class="form-control"-->
+<!--            placeholder="請輸入想了解的歷史故事並按 Enter..."-->
+<!--            required-->
+<!--            autofocus-->
+<!--          >-->
+<!--        </div>-->
+<!--      </form>-->
+
+<!--      <div class="tts-controls">-->
+<!--        <button id="tts-btn" class="btn btn-outline-primary btn-sm">🔊 開始朗讀</button>-->
+<!--        <div class="progress">-->
+<!--          <div id="tts-progress" class="progress-bar" style="width: 0%"></div>-->
+<!--        </div>-->
+<!--      </div>-->
+
+<!--      <div class="action-buttons hidden">-->
+<!--        <button class="btn btn-secondary btn-sm" onclick="callSummary()">🧠 摘要</button>-->
+<!--        <button class="btn btn-secondary btn-sm" onclick="callChapter()">📚 章節</button>-->
+<!--        <button class="btn btn-secondary btn-sm" onclick="callVariant()">🎭 換風格</button>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div id="tts-ghost-area"></div>-->
+
+<!--    <audio id="bg-music" loop>-->
+<!--      <source src="/static/music/guzheng.mp3" type="audio/mpeg">-->
+<!--    </audio>-->
+<!--  </div>-->
+<script>
+    const storyOutput = document.getElementById("story-output");
+    const ttsGhost = document.getElementById("tts-ghost-area");
+    const progressBar = document.getElementById("tts-progress");
+    const ttsBtn = document.getElementById("tts-btn");
+    const bgMusic = document.getElementById("bg-music");
+    const actionBtns = document.querySelector(".action-buttons");
+    let ttsQueue = [], current = 0, textSpans = [];
+    let isSpeaking = false;
+
+    function scrollToBottom() {
+      storyOutput.scrollTop = storyOutput.scrollHeight;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    }
+
+    document.getElementById("chat-form").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const q = document.getElementById("question").value;
+      storyOutput.innerHTML = "";
+      ttsGhost.innerHTML = "";
+      actionBtns.classList.add("hidden");
+
+      const source = new EventSource(`/stream?question=${encodeURIComponent(q)}`);
+      source.onmessage = function(event) {
+        const section = document.createElement("div");
+        section.className = "fade-in";
+        section.innerHTML = marked.parse(event.data);
+        storyOutput.appendChild(section);
+        requestAnimationFrame(() => section.classList.add("visible"));
+        scrollToBottom();
+
+        const ghostSection = document.createElement("div");
+        ghostSection.innerText = event.data;
+        ttsGhost.appendChild(ghostSection);
+      };
+      source.onerror = function() {
+        actionBtns.classList.remove("hidden");
+        source.close();
+      };
+    });
+
+    ttsBtn.addEventListener("click", function () {
+      if (isSpeaking) {
+        window.speechSynthesis.cancel();
+        bgMusic.pause();
+        ttsBtn.innerText = "🔊 開始朗讀";
+        isSpeaking = false;
+        textSpans.forEach(span => span.classList.remove("highlight"));
+        return;
+      }
+
+      const rawText = ttsGhost.innerText.trim();
+      ttsQueue = rawText.split(/[。！？\n]+/).filter(Boolean);
+      textSpans = [];
+      ttsGhost.innerHTML = "";
+
+      ttsQueue.forEach((t, i) => {
+        const span = document.createElement("span");
+        span.textContent = t + "。";
+        span.dataset.index = i;
+        ttsGhost.appendChild(span);
+        ttsGhost.appendChild(document.createTextNode(" "));
+        textSpans.push(span);
+      });
+
+      current = 0;
+      isSpeaking = true;
+      bgMusic.volume = 0.4;
+      bgMusic.play();
+      ttsBtn.innerText = "⏹ 停止朗讀";
+      speakNext();
+    });
+
+    function speakNext() {
+      if (!isSpeaking || current >= ttsQueue.length) {
+        isSpeaking = false;
+        bgMusic.pause();
+        ttsBtn.innerText = "🔊 開始朗讀";
+        progressBar.style.width = "100%";
+        return;
+      }
+      textSpans.forEach(span => span.classList.remove("highlight"));
+      textSpans[current].classList.add("highlight");
+      textSpans[current].scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      const utterance = new SpeechSynthesisUtterance(ttsQueue[current]);
+      utterance.lang = "zh-TW";
+      utterance.rate = 1.0;
+      utterance.onend = () => {
+        current++;
+        progressBar.style.width = `${(current / ttsQueue.length) * 100}%`;
+        speakNext();
+      };
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function callSummary() {
+      fetch("/summarize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: ttsGhost.innerText.trim() })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const div = document.createElement("div");
+        div.innerHTML = "<hr><h5>🧠 故事摘要</h5><p>" + data.summary + "</p>";
+        storyOutput.appendChild(div);
+        scrollToBottom();
+      });
+    }
+
+    function callChapter() {
+      fetch("/chapter-titles", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ topic: document.getElementById("question").value })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const div = document.createElement("div");
+        div.innerHTML = "<hr><h5>📚 建議章節</h5>" + marked.parse(data.titles_md);
+        storyOutput.appendChild(div);
+        scrollToBottom();
+      });
+    }
+
+    function callVariant() {
+      fetch("/variant-style", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: ttsGhost.innerText.trim(), style: "詩意" })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const div = document.createElement("div");
+        div.innerHTML = "<hr><h5>🎭 詩意風格改寫</h5>" + marked.parse(data.styled_text);
+        storyOutput.appendChild(div);
+        scrollToBottom();
+      });
+    }
+
+    function callContinue() {
+      fetch("/continue-story", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ content: ttsGhost.innerText.trim() })
+      })
+      .then(res => res.json())
+      .then(data => {
+        const div = document.createElement("div");
+        div.innerHTML = "<hr><h5>🔁 故事續寫</h5>" + marked.parse(data.continued);
+        storyOutput.appendChild(div);
+        scrollToBottom();
+      });
+    }
+</script>
+
+
+<!--  <script>-->
+<!--    const storyOutput = document.getElementById("story-output");-->
+<!--    const ttsGhost = document.getElementById("tts-ghost-area");-->
+<!--    const progressBar = document.getElementById("tts-progress");-->
+<!--    const ttsBtn = document.getElementById("tts-btn");-->
+<!--    const bgMusic = document.getElementById("bg-music");-->
+<!--    const actionBtns = document.querySelector(".action-buttons");-->
+<!--    let ttsQueue = [], current = 0, textSpans = [];-->
+<!--    let isSpeaking = false;-->
+
+<!--    document.getElementById("chat-form").addEventListener("submit", function(e) {-->
+<!--      e.preventDefault();-->
+<!--      const q = document.getElementById("question").value;-->
+<!--      storyOutput.innerHTML = "";-->
+<!--      ttsGhost.innerHTML = "";-->
+<!--      actionBtns.classList.add("hidden");-->
+
+<!--      const source = new EventSource(`/stream?question=${encodeURIComponent(q)}`);-->
+<!--      source.onmessage = function(event) {-->
+<!--        const section = document.createElement("div");-->
+<!--        section.className = "fade-in";-->
+<!--        section.innerHTML = marked.parse(event.data);-->
+<!--        storyOutput.prepend(section);-->
+<!--        requestAnimationFrame(() => section.classList.add("visible"));-->
+
+<!--        const ghostSection = document.createElement("div");-->
+<!--        ghostSection.innerText = event.data;-->
+<!--        ttsGhost.appendChild(ghostSection);-->
+<!--      };-->
+<!--      source.onerror = function() {-->
+<!--        actionBtns.classList.remove("hidden");-->
+<!--        source.close();-->
+<!--      };-->
+<!--    });-->
+
+<!--    ttsBtn.addEventListener("click", function () {-->
+<!--      if (isSpeaking) {-->
+<!--        window.speechSynthesis.cancel();-->
+<!--        bgMusic.pause();-->
+<!--        ttsBtn.innerText = "🔊 開始朗讀";-->
+<!--        isSpeaking = false;-->
+<!--        textSpans.forEach(span => span.classList.remove("highlight"));-->
+<!--        return;-->
+<!--      }-->
+
+<!--      const rawText = ttsGhost.innerText.trim();-->
+<!--      ttsQueue = rawText.split(/[。！？\n]+/).filter(Boolean);-->
+<!--      textSpans = [];-->
+<!--      ttsGhost.innerHTML = "";-->
+
+<!--      ttsQueue.forEach((t, i) => {-->
+<!--        const span = document.createElement("span");-->
+<!--        span.textContent = t + "。";-->
+<!--        span.dataset.index = i;-->
+<!--        ttsGhost.appendChild(span);-->
+<!--        ttsGhost.appendChild(document.createTextNode(" "));-->
+<!--        textSpans.push(span);-->
+<!--      });-->
+
+<!--      current = 0;-->
+<!--      isSpeaking = true;-->
+<!--      bgMusic.volume = 0.4;-->
+<!--      bgMusic.play();-->
+<!--      ttsBtn.innerText = "⏹ 停止朗讀";-->
+<!--      speakNext();-->
+<!--    });-->
+
+<!--    function speakNext() {-->
+<!--      if (!isSpeaking || current >= ttsQueue.length) {-->
+<!--        isSpeaking = false;-->
+<!--        bgMusic.pause();-->
+<!--        ttsBtn.innerText = "🔊 開始朗讀";-->
+<!--        progressBar.style.width = "100%";-->
+<!--        return;-->
+<!--      }-->
+<!--      textSpans.forEach(span => span.classList.remove("highlight"));-->
+<!--      textSpans[current].classList.add("highlight");-->
+<!--      textSpans[current].scrollIntoView({ behavior: 'smooth', block: 'center' });-->
+
+<!--      const utterance = new SpeechSynthesisUtterance(ttsQueue[current]);-->
+<!--      utterance.lang = "zh-TW";-->
+<!--      utterance.rate = 1.0;-->
+<!--      utterance.onend = () => {-->
+<!--        current++;-->
+<!--        progressBar.style.width = `${(current / ttsQueue.length) * 100}%`;-->
+<!--        speakNext();-->
+<!--      };-->
+<!--      window.speechSynthesis.speak(utterance);-->
+<!--    }-->
+
+<!--    function callSummary() {-->
+<!--      fetch("/summarize", {-->
+<!--        method: "POST",-->
+<!--        headers: { "Content-Type": "application/json" },-->
+<!--        body: JSON.stringify({ content: ttsGhost.innerText.trim() })-->
+<!--      })-->
+<!--      .then(res => res.json())-->
+<!--      .then(data => {-->
+<!--        const div = document.createElement("div");-->
+<!--        div.innerHTML = "<hr><h5>🧠 故事摘要</h5><p>" + data.summary + "</p>";-->
+<!--        storyOutput.prepend(div);-->
+<!--      });-->
+<!--    }-->
+
+<!--    function callChapter() {-->
+<!--      fetch("/chapter-titles", {-->
+<!--        method: "POST",-->
+<!--        headers: { "Content-Type": "application/json" },-->
+<!--        body: JSON.stringify({ topic: document.getElementById("question").value })-->
+<!--      })-->
+<!--      .then(res => res.json())-->
+<!--      .then(data => {-->
+<!--        const div = document.createElement("div");-->
+<!--        div.innerHTML = "<hr><h5>📚 建議章節</h5>" + marked.parse(data.titles_md);-->
+<!--        storyOutput.prepend(div);-->
+<!--      });-->
+<!--    }-->
+
+<!--    function callVariant() {-->
+<!--      fetch("/variant-style", {-->
+<!--        method: "POST",-->
+<!--        headers: { "Content-Type": "application/json" },-->
+<!--        body: JSON.stringify({ content: ttsGhost.innerText.trim(), style: "詩意" })-->
+<!--      })-->
+<!--      .then(res => res.json())-->
+<!--      .then(data => {-->
+<!--        const div = document.createElement("div");-->
+<!--        div.innerHTML = "<hr><h5>🎭 詩意風格改寫</h5>" + marked.parse(data.styled_text);-->
+<!--        storyOutput.prepend(div);-->
+<!--      });-->
+<!--    }-->
+<!--  </script>-->
+</body>
+</html>
+
+
+
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="zh-Hant">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <title>HistorIQ 歷史故事</title>-->
+<!--  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
+<!--  <style>-->
+<!--    body {-->
+<!--      background-color: #f7f8fa;-->
+<!--      color: #333;-->
+<!--      padding-top: 40px;-->
+<!--      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;-->
+<!--    }-->
+<!--    .card {-->
+<!--      max-width: 720px;-->
+<!--      margin: auto;-->
+<!--      padding: 2rem;-->
+<!--      box-shadow: 0 2px 10px rgba(0,0,0,0.08);-->
+<!--      border-radius: 12px;-->
+<!--      background-color: #fff;-->
+<!--    }-->
+<!--    .form-control {-->
+<!--      height: 60px;-->
+<!--      font-size: 1.1rem;-->
+<!--      padding: 1rem;-->
+<!--    }-->
+<!--    .markdown {-->
+<!--      white-space: pre-wrap;-->
+<!--      margin-top: 1rem;-->
+<!--    }-->
+<!--    .markdown h2 {-->
+<!--      font-size: 1.5rem;-->
+<!--      margin-top: 2rem;-->
+<!--      border-left: 4px solid #527586;-->
+<!--      padding-left: 0.6rem;-->
+<!--      color: #2c3e50;-->
+<!--    }-->
+<!--    .tts-controls, .action-buttons {-->
+<!--      display: flex;-->
+<!--      align-items: center;-->
+<!--      gap: 1rem;-->
+<!--      margin-top: 1.5rem;-->
+<!--      flex-wrap: wrap;-->
+<!--    }-->
+<!--    .progress {-->
+<!--      flex-grow: 1;-->
+<!--      height: 10px;-->
+<!--    }-->
+<!--    .highlight {-->
+<!--      background-color: #fceccf;-->
+<!--      padding: 0.2rem;-->
+<!--      border-radius: 4px;-->
+<!--    }-->
+<!--    #tts-ghost-area {-->
+<!--      display: none;-->
+<!--    }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--  <div class="card">-->
+<!--    <h2 class="mb-4 text-center">🕰️ HistorIQ 歷史故事</h2>-->
+
+<!--    <form id="chat-form">-->
+<!--      <div class="mb-3">-->
+<!--        <input-->
+<!--          type="text"-->
+<!--          id="question"-->
+<!--          name="question"-->
+<!--          class="form-control"-->
+<!--          placeholder="請輸入想了解的歷史故事並按 Enter..."-->
+<!--          required-->
+<!--          autofocus-->
+<!--        >-->
+<!--      </div>-->
+<!--    </form>-->
+
+<!--    <div class="tts-controls">-->
+<!--      <button id="tts-btn" class="btn btn-outline-primary btn-sm">🔊 開始朗讀</button>-->
+<!--      <div class="progress">-->
+<!--        <div id="tts-progress" class="progress-bar" style="width: 0%"></div>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="action-buttons">-->
+<!--      <button class="btn btn-secondary btn-sm" onclick="callSummary()">🧠 摘要</button>-->
+<!--      <button class="btn btn-secondary btn-sm" onclick="callChapter()">📚 章節</button>-->
+<!--      <button class="btn btn-secondary btn-sm" onclick="callVariant()">🎭 換風格</button>-->
+<!--    </div>-->
+
+<!--    <div class="markdown" id="story-output"></div>-->
+<!--    <div id="tts-ghost-area"></div>-->
+
+<!--    <audio id="bg-music" loop>-->
+<!--      <source src="/static/music/guzheng.mp3" type="audio/mpeg">-->
+<!--    </audio>-->
+
+<!--    {% if history %}-->
+<!--    <hr>-->
+<!--    <div class="mt-4">-->
+<!--      <h5 class="mb-3">📜 歷史對話紀錄</h5>-->
+<!--      {% for question, answer in history %}-->
+<!--      <div class="history-item">-->
+<!--        <div class="user-question">👤 你：{{ question }}</div>-->
+<!--        <div class="ai-answer">🤖 AI：{{ answer }}</div>-->
+<!--      </div>-->
+<!--      {% endfor %}-->
+<!--    </div>-->
+<!--    {% endif %}-->
+<!--  </div>-->
+
+<!--  <script>-->
+<!--    const storyOutput = document.getElementById("story-output");-->
+<!--    const ttsGhost = document.getElementById("tts-ghost-area");-->
+<!--    const progressBar = document.getElementById("tts-progress");-->
+<!--    const ttsBtn = document.getElementById("tts-btn");-->
+<!--    const bgMusic = document.getElementById("bg-music");-->
+<!--    let ttsQueue = [], current = 0, textSpans = [];-->
+<!--    let isSpeaking = false;-->
+
+<!--    document.getElementById("chat-form").addEventListener("submit", function(e) {-->
+<!--      e.preventDefault();-->
+<!--      const q = document.getElementById("question").value;-->
+<!--      storyOutput.innerHTML = "";-->
+<!--      ttsGhost.innerHTML = "";-->
+
+<!--      const source = new EventSource(`/stream?question=${encodeURIComponent(q)}`);-->
+<!--      source.onmessage = function(event) {-->
+<!--        const section = document.createElement("div");-->
+<!--        section.className = "fade-in";-->
+<!--        section.innerHTML = marked.parse(event.data);-->
+<!--        storyOutput.appendChild(section);-->
+<!--        requestAnimationFrame(() => section.classList.add("visible"));-->
+
+<!--        const ghostSection = document.createElement("div");-->
+<!--        ghostSection.innerText = event.data;-->
+<!--        ttsGhost.appendChild(ghostSection);-->
+<!--      };-->
+<!--      source.onerror = function() {-->
+<!--        storyOutput.innerHTML += "<br><span style='color:red;'>⚠️ 資料傳輸中斷，請稍候再試。</span>";-->
+<!--        source.close();-->
+<!--      };-->
+<!--    });-->
+
+<!--    ttsBtn.addEventListener("click", function () {-->
+<!--      if (isSpeaking) {-->
+<!--        window.speechSynthesis.cancel();-->
+<!--        bgMusic.pause();-->
+<!--        ttsBtn.innerText = "🔊 開始朗讀";-->
+<!--        isSpeaking = false;-->
+<!--        textSpans.forEach(span => span.classList.remove("highlight"));-->
+<!--        return;-->
+<!--      }-->
+
+<!--      const rawText = ttsGhost.innerText.trim();-->
+<!--      ttsQueue = rawText.split(/[。！？\n]+/).filter(Boolean);-->
+<!--      textSpans = [];-->
+<!--      ttsGhost.innerHTML = "";-->
+
+<!--      ttsQueue.forEach((t, i) => {-->
+<!--        const span = document.createElement("span");-->
+<!--        span.textContent = t + "。";-->
+<!--        span.dataset.index = i;-->
+<!--        ttsGhost.appendChild(span);-->
+<!--        ttsGhost.appendChild(document.createTextNode(" "));-->
+<!--        textSpans.push(span);-->
+<!--      });-->
+
+<!--      current = 0;-->
+<!--      isSpeaking = true;-->
+<!--      bgMusic.volume = 0.4;-->
+<!--      bgMusic.play();-->
+<!--      ttsBtn.innerText = "⏹ 停止朗讀";-->
+<!--      speakNext();-->
+<!--    });-->
+
+<!--    function speakNext() {-->
+<!--      if (!isSpeaking || current >= ttsQueue.length) {-->
+<!--        isSpeaking = false;-->
+<!--        bgMusic.pause();-->
+<!--        ttsBtn.innerText = "🔊 開始朗讀";-->
+<!--        progressBar.style.width = "100%";-->
+<!--        return;-->
+<!--      }-->
+<!--      textSpans.forEach(span => span.classList.remove("highlight"));-->
+<!--      textSpans[current].classList.add("highlight");-->
+<!--      textSpans[current].scrollIntoView({ behavior: 'smooth', block: 'center' });-->
+
+<!--      const utterance = new SpeechSynthesisUtterance(ttsQueue[current]);-->
+<!--      utterance.lang = "zh-TW";-->
+<!--      utterance.rate = 1.0;-->
+<!--      utterance.onend = () => {-->
+<!--        current++;-->
+<!--        progressBar.style.width = `${(current / ttsQueue.length) * 100}%`;-->
+<!--        speakNext();-->
+<!--      };-->
+<!--      window.speechSynthesis.speak(utterance);-->
+<!--    }-->
+
+<!--    function callSummary() {-->
+<!--      fetch("/summarize", {-->
+<!--        method: "POST",-->
+<!--        headers: { "Content-Type": "application/json" },-->
+<!--        body: JSON.stringify({ content: ttsGhost.innerText.trim() })-->
+<!--      })-->
+<!--      .then(res => res.json())-->
+<!--      .then(data => {-->
+<!--        const div = document.createElement("div");-->
+<!--        div.innerHTML = "<hr><h5>🧠 故事摘要</h5><p>" + data.summary + "</p>";-->
+<!--        storyOutput.appendChild(div);-->
+<!--      });-->
+<!--    }-->
+
+<!--    function callChapter() {-->
+<!--      fetch("/chapter-titles", {-->
+<!--        method: "POST",-->
+<!--        headers: { "Content-Type": "application/json" },-->
+<!--        body: JSON.stringify({ topic: document.getElementById("question").value })-->
+<!--      })-->
+<!--      .then(res => res.json())-->
+<!--      .then(data => {-->
+<!--        const div = document.createElement("div");-->
+<!--        div.innerHTML = "<hr><h5>📚 建議章節</h5>" + marked.parse(data.titles_md);-->
+<!--        storyOutput.appendChild(div);-->
+<!--      });-->
+<!--    }-->
+
+<!--    function callVariant() {-->
+<!--      fetch("/variant-style", {-->
+<!--        method: "POST",-->
+<!--        headers: { "Content-Type": "application/json" },-->
+<!--        body: JSON.stringify({ content: ttsGhost.innerText.trim(), style: "詩意" })-->
+<!--      })-->
+<!--      .then(res => res.json())-->
+<!--      .then(data => {-->
+<!--        const div = document.createElement("div");-->
+<!--        div.innerHTML = "<hr><h5>🎭 詩意風格改寫</h5>" + marked.parse(data.styled_text);-->
+<!--        storyOutput.appendChild(div);-->
+<!--      });-->
+<!--    }-->
+<!--  </script>-->
+<!--</body>-->
+<!--</html>-->
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="zh-Hant">-->
+<!--<head>-->
+<!--  <meta charset="UTF-8">-->
+<!--  <title>HistorIQ 歷史故事</title>-->
+<!--  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">-->
+<!--  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
+<!--  <style>-->
+<!--    body {-->
+<!--      background-color: #f7f8fa;-->
+<!--      color: #333;-->
+<!--      padding-top: 40px;-->
+<!--      font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;-->
+<!--    }-->
+
+<!--    .card {-->
+<!--      max-width: 720px;-->
+<!--      margin: auto;-->
+<!--      padding: 2rem;-->
+<!--      box-shadow: 0 2px 10px rgba(0,0,0,0.08);-->
+<!--      border-radius: 12px;-->
+<!--      background-color: #fff;-->
+<!--    }-->
+
+<!--    .form-control {-->
+<!--      height: 60px;-->
+<!--      font-size: 1.1rem;-->
+<!--      padding: 1rem;-->
+<!--    }-->
+
+<!--    .markdown {-->
+<!--      white-space: pre-wrap;-->
+<!--      margin-top: 1rem;-->
+<!--    }-->
+
+<!--    .markdown h2 {-->
+<!--      font-size: 1.5rem;-->
+<!--      margin-top: 2rem;-->
+<!--      border-left: 4px solid #527586;-->
+<!--      padding-left: 0.6rem;-->
+<!--      color: #2c3e50;-->
+<!--    }-->
+
+<!--    .fade-in {-->
+<!--      opacity: 0;-->
+<!--      transition: opacity 0.6s ease-in;-->
+<!--    }-->
+
+<!--    .fade-in.visible {-->
+<!--      opacity: 1;-->
+<!--    }-->
+
+<!--    .tts-controls {-->
+<!--      display: flex;-->
+<!--      align-items: center;-->
+<!--      gap: 1rem;-->
+<!--      margin-top: 1.5rem;-->
+<!--    }-->
+
+<!--    .progress {-->
+<!--      flex-grow: 1;-->
+<!--      height: 10px;-->
+<!--    }-->
+
+<!--    .highlight {-->
+<!--      background-color: #fceccf;-->
+<!--      padding: 0.2rem;-->
+<!--      border-radius: 4px;-->
+<!--    }-->
+
+<!--    #tts-ghost-area {-->
+<!--      display: none;-->
+<!--    }-->
+<!--  </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--  <div class="card">-->
+<!--    <h2 class="mb-4 text-center">🕰️ HistorIQ 歷史故事</h2>-->
+
+<!--    <form id="chat-form">-->
+<!--      <div class="mb-3">-->
+<!--        <input-->
+<!--          type="text"-->
+<!--          id="question"-->
+<!--          name="question"-->
+<!--          class="form-control"-->
+<!--          placeholder="請輸入想了解的歷史故事並按 Enter..."-->
+<!--          required-->
+<!--          autofocus-->
+<!--        >-->
+<!--      </div>-->
+<!--    </form>-->
+
+<!--    <div class="tts-controls">-->
+<!--      <button id="tts-btn" class="btn btn-outline-primary btn-sm">🔊 開始朗讀</button>-->
+<!--      <div class="progress">-->
+<!--        <div id="tts-progress" class="progress-bar" style="width: 0%"></div>-->
+<!--      </div>-->
+<!--    </div>-->
+
+<!--    <div class="markdown" id="story-output"></div>-->
+<!--    <div id="tts-ghost-area"></div>-->
+<!--&lt;!&ndash;    <audio id="bg-music" loop>&ndash;&gt;-->
+<!--&lt;!&ndash;      <source src="/static/music/guzheng.mp3" type="audio/mpeg">&ndash;&gt;-->
+<!--&lt;!&ndash;    </audio>&ndash;&gt;-->
+
+<!--    {% if history %}-->
+<!--    <hr>-->
+<!--    <div class="mt-4">-->
+<!--      <h5 class="mb-3">📜 歷史對話紀錄</h5>-->
+<!--      {% for question, answer in history %}-->
+<!--      <div class="history-item">-->
+<!--        <div class="user-question">👤 你：{{ question }}</div>-->
+<!--        <div class="ai-answer">🤖 AI：{{ answer }}</div>-->
+<!--      </div>-->
+<!--      {% endfor %}-->
+<!--    </div>-->
+<!--    {% endif %}-->
+<!--  </div>-->
+
+<!--  <script>-->
+<!--    const storyOutput = document.getElementById("story-output");-->
+<!--    const ttsGhost = document.getElementById("tts-ghost-area");-->
+<!--    const progressBar = document.getElementById("tts-progress");-->
+<!--    const ttsBtn = document.getElementById("tts-btn");-->
+<!--    const bgMusic = document.getElementById("bg-music");-->
+<!--    let ttsQueue = [], current = 0, textSpans = [];-->
+<!--    let isSpeaking = false;-->
+
+<!--    document.getElementById("chat-form").addEventListener("submit", function(e) {-->
+<!--      e.preventDefault();-->
+<!--      const q = document.getElementById("question").value;-->
+<!--      storyOutput.innerHTML = "";-->
+<!--      ttsGhost.innerHTML = "";-->
+
+<!--      const source = new EventSource(`/stream?question=${encodeURIComponent(q)}`);-->
+<!--      source.onmessage = function(event) {-->
+<!--        const section = document.createElement("div");-->
+<!--        section.className = "fade-in";-->
+<!--        section.innerHTML = marked.parse(event.data);-->
+<!--        storyOutput.appendChild(section);-->
+<!--        requestAnimationFrame(() => section.classList.add("visible"));-->
+
+<!--        const ghostSection = document.createElement("div");-->
+<!--        ghostSection.innerText = event.data;-->
+<!--        ttsGhost.appendChild(ghostSection);-->
+<!--      };-->
+<!--      source.onerror = function() {-->
+<!--        storyOutput.innerHTML += "<br><span style='color:red;'>⚠️ 資料傳輸中斷，請稍候再試。</span>";-->
+<!--        source.close();-->
+<!--      };-->
+<!--    });-->
+
+<!--    ttsBtn.addEventListener("click", function () {-->
+<!--      if (isSpeaking) {-->
+<!--        window.speechSynthesis.cancel();-->
+<!--        bgMusic.pause();-->
+<!--        ttsBtn.innerText = "🔊 開始朗讀";-->
+<!--        isSpeaking = false;-->
+<!--        textSpans.forEach(span => span.classList.remove("highlight"));-->
+<!--        return;-->
+<!--      }-->
+
+<!--      const rawText = ttsGhost.innerText.trim();-->
+<!--      ttsQueue = rawText.split(/[。！？\n]+/).filter(Boolean);-->
+<!--      textSpans = [];-->
+<!--      ttsGhost.innerHTML = "";-->
+
+<!--      ttsQueue.forEach((t, i) => {-->
+<!--        const span = document.createElement("span");-->
+<!--        span.textContent = t + "。";-->
+<!--        span.dataset.index = i;-->
+<!--        ttsGhost.appendChild(span);-->
+<!--        ttsGhost.appendChild(document.createTextNode(" "));-->
+<!--        textSpans.push(span);-->
+<!--      });-->
+
+<!--      current = 0;-->
+<!--      isSpeaking = true;-->
+<!--      bgMusic.volume = 0.4;-->
+<!--      bgMusic.play();-->
+<!--      ttsBtn.innerText = "⏹ 停止朗讀";-->
+<!--      speakNext();-->
+<!--    });-->
+
+<!--    function speakNext() {-->
+<!--      if (!isSpeaking || current >= ttsQueue.length) {-->
+<!--        isSpeaking = false;-->
+<!--        bgMusic.pause();-->
+<!--        ttsBtn.innerText = "🔊 開始朗讀";-->
+<!--        progressBar.style.width = "100%";-->
+<!--        return;-->
+<!--      }-->
+
+<!--      textSpans.forEach(span => span.classList.remove("highlight"));-->
+<!--      textSpans[current].classList.add("highlight");-->
+<!--      textSpans[current].scrollIntoView({ behavior: 'smooth', block: 'center' });-->
+
+<!--      const utterance = new SpeechSynthesisUtterance(ttsQueue[current]);-->
+<!--      utterance.lang = "zh-TW";-->
+<!--      utterance.rate = 1.0;-->
+<!--      utterance.onend = () => {-->
+<!--        current++;-->
+<!--        progressBar.style.width = `${(current / ttsQueue.length) * 100}%`;-->
+<!--        speakNext();-->
+<!--      };-->
+<!--      window.speechSynthesis.speak(utterance);-->
+<!--    }-->
+<!--  </script>-->
+<!--</body>-->
+<!--</html>-->
