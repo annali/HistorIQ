@@ -59,7 +59,8 @@ HistorIQ 是一個基於模型上下文協議（Model Context Protocol, MCP）�
 
 ## 前端ui畫面展示
 #### 剛開始的畫面
-![image](https://github.com/user-attachments/assets/396b3464-5c43-49d3-980d-8817228eab4a)
+![image](https://github.com/user-attachments/assets/625ab0e4-619e-4044-ab2e-4a2773fb28b4)
+
 
 #### 文章產製完畢的畫面
 ![image](https://github.com/user-attachments/assets/c1987c21-c9df-4291-843d-bc9dbf71d2b4)
