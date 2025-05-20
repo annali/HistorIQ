@@ -1,5 +1,5 @@
 # HistorIQ
-HistorIQ 是一個基於模型上下文協議（Model Context Protocol, MCP）架構的 AI 歷史知識互動平台。整合了 RAG（Retrieval-Augmented Generation）、AI Agent、與本地部署的大語言模型（LLM），讓使用者能夠以自然語言提問歷史事件、人物與文化主題，系統則透過多階段推理與知識檢索生成具脈絡性的回答。
+HistorIQ 是一個基於模型上下文協議（Model Context Protocol, MCP）架構的 AI 歷史小說與知識互動平台。整合了 RAG（Retrieval-Augmented Generation）、AI Agent、與本地部署的大語言模型（LLM），讓使用者能夠以自然語言提問歷史事件、人物與文化主題，系統則透過多階段推理與知識檢索生成具脈絡性的回答。
 
 ## 主要特色
 
