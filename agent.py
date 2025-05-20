@@ -2,7 +2,7 @@ import requests
 
 def ask_ai(prompt):
     # 本地的 LM Studio API endpoint
-    url = "http://192.168.136.1:1234/v1/chat/completions"
+    url = "http://your ip/v1/chat/completions"
     headers = {"Content-Type": "application/json"}
     data = {
         "model": "gemma-3-12b-it",
