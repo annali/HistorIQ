@@ -23,3 +23,38 @@ HistorIQ 是一個基於模型上下文協議（Model Context Protocol, MCP）�
 | `延伸任務鏈設計`          | 支援故事後續分支與按鈕觸發任務，如「AI 講書人」、「產出摘要」等                     | ✅ 已完成  |
 | `MCP 規範相容性`        | 遵守 MCP 的 Request/Response 與任務分層邏輯，可擴展至更多 Agent 或 Tool | ✅ 初步完成 |
 
+## 整體架構與功能模組概覽
+| 模組層          | 元件                     | 說明                     |
+| ------------ | ---------------------- | ---------------------- |
+| `MCP Client` | `index.html`, `app.py` | 前端頁面與 Web API 入口       |
+| `MCP Server` | `mcp_server.py`        | 實作所有 AI 邏輯與服務功能        |
+| `AI Agent`   | `story_agent.py`       | 呼叫 LLM 生成內容（Gemma）     |
+| `RAG`        | `rag.py`               | 向量搜尋補充知識背景（已掛入 prompt） |
+
+## MCP Server 所提供的服務總表
+| 函式                 | API               | 功能描述            |
+| ------------------ | ----------------- | --------------- |
+| `stream_story()`   | `/stream`         | 根據輸入主題串流生成歷史小說  |
+| `summarize()`      | `/summarize`      | 三句話濃縮故事摘要       |
+| `chapter_titles()` | `/chapter-titles` | 自動生成章節標題與概要     |
+| `variant_style()`  | `/variant-style`  | 以指定風格（如詩意）重寫內容  |
+| `continue_story()` | `/continue-story` | 從原內容延續劇情並追加後續章節 |
+
+## 使用者互動功能（前端整合）
+| 功能按鈕      | 描述             | 對應 API            |
+| --------- | -------------- | ----------------- |
+| `開始朗讀` | 文字朗讀並同步高亮段落    | Web Speech API    |
+| `摘要`   | 產出三句簡潔摘要       | `/summarize`      |
+| `章節`   | 章節目錄建議（含主題與描述） | `/chapter-titles` |
+| `換風格`  | 詩意/史詩風改寫內容     | `/variant-style`  |
+| `續寫故事` | 延續章節，保持敘事連貫性   | `/continue-story` |
+
+## 特殊優化設計亮點
+✅ 輸入欄與功能區 固定在底部
+✅ AI 串流輸出時，內容由上往下自然堆疊
+✅ 使用 Markdown 格式排版，美觀清晰
+✅ 引導 AI 融合歷代詩詞與經典語錄，提升人文素養
+✅ 具備基本 RAG 植入，可擴充知識強化模組
+
+
+
