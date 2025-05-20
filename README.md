@@ -16,7 +16,7 @@ HistorIQ 是一個基於模型上下文協議（Model Context Protocol, MCP）�
 | `MCP Client (Web)` | 提供使用者互動入口，支援問題輸入、上下文顯示、按鈕互動等                          | ✅ 已完成  |
 | `AI Agent`         | 接收 Server 任務委派，進行多步推理與角色化內容生成                         | ✅ 已完成  |
 | `RAG Retriever`    | 檢索外部知識內容（如歷史資料庫）並回傳上下文給 AI 模型使用                       | ✅ 已完成  |
-| `LLM 接口模組`         | 支援 OpenAI 或本地 LLM（如 LM Studio）語言模型的 API 呼叫與回應解析       | ✅ 已完成  |
+| `LLM 接口模組`         | 支援本地 LLM（如 LM Studio）語言模型的 API 呼叫與回應解析       | ✅ 已完成  |
 | `功能選單控制`           | 故事結束後提供互動按鈕，如「延伸故事」、「轉換風格」等操作，並由 MCP Server 分派對應服務    | ✅ 已完成  |
 | `上下文管理機制`          | 每位使用者會有獨立 session ID，並記錄歷史問答脈絡，提供語境維持功能               | ✅ 已完成  |
 | `多模組解耦架構`          | 各模組（RAG、Agent、Server、Client）具備明確職責與獨立維護界線             | ✅ 已完成  |
