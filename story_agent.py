@@ -3,7 +3,7 @@ import json
 
 class StoryAgent:
     def __init__(self):
-        self.api_url = "http://192.168.136.1:1234/v1/chat/completions"
+        self.api_url = "http://your ip/v1/chat/completions"
         self.model = "gemma-3-12b-it"
 
     def stream_story(self, prompt, session_id):
