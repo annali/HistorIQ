@@ -49,5 +49,16 @@ def continue_story():
     continuation = mcp.continue_story(content)
     return jsonify({"continued": continuation})
 
+
+@app.route("/qa-on-story", methods=["POST"])
+def qa_on_story():
+    data = request.json
+    story = data.get("story")
+    question = data.get("question")
+    response = mcp.answer_about_story(story, question)
+    return jsonify({"answer": response})
+
+
 if __name__ == "__main__":
     app.run(debug=True)
+
